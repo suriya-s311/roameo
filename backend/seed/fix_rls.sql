@@ -1,0 +1,20 @@
+-- ================================================================
+-- ROAMEO — Disable RLS on all tables (for demo/development)
+-- Run this in Supabase SQL Editor
+-- ================================================================
+
+ALTER TABLE destinations DISABLE ROW LEVEL SECURITY;
+ALTER TABLE tourist_spots DISABLE ROW LEVEL SECURITY;
+ALTER TABLE products DISABLE ROW LEVEL SECURITY;
+ALTER TABLE shops DISABLE ROW LEVEL SECURITY;
+ALTER TABLE udyam_references DISABLE ROW LEVEL SECURITY;
+ALTER TABLE profiles DISABLE ROW LEVEL SECURITY;
+ALTER TABLE sellers DISABLE ROW LEVEL SECURITY;
+ALTER TABLE travel_plans DISABLE ROW LEVEL SECURITY;
+ALTER TABLE travel_plan_spots DISABLE ROW LEVEL SECURITY;
+ALTER TABLE budgets DISABLE ROW LEVEL SECURITY;
+ALTER TABLE cart_items DISABLE ROW LEVEL SECURITY;
+ALTER TABLE addresses DISABLE ROW LEVEL SECURITY;
+ALTER TABLE orders DISABLE ROW LEVEL SECURITY;
+ALTER TABLE order_items DISABLE ROW LEVEL SECURITY;
+ALTER TABLE notifications DISABLE ROW LEVEL SECURITY;

@@ -1,0 +1,19 @@
+# Python
+venv/
+.venv/
+env/
+ENV/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Environment files
+.env*
+!.env.example
+
+# Testing / IDE
+.pytest_cache/
+.vscode/
+.idea/

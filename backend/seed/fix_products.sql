@@ -1,0 +1,29 @@
+-- ================================================================
+-- ROAMEO Fix: Make seller_id nullable and insert products directly
+-- Run this in Supabase SQL Editor AFTER schema.sql
+-- ================================================================
+
+-- Step 1: Allow products without a seller (for demo data)
+ALTER TABLE products ALTER COLUMN seller_id DROP NOT NULL;
+
+-- Step 2: Insert demo products directly (not linked to sellers)
+INSERT INTO products (name, description, price, category, stock, image_url, location, shop_id) VALUES
+('Traditional Stone Ganesha', 'Hand-carved granite Ganesha idol by Mahabalipuram artisans. Each piece is unique.', 1250.00, 'Handicraft', 15, 'https://images.unsplash.com/photo-1567591370504-ce57d91f9905?w=400', 'Mahabalipuram', (SELECT id FROM shops WHERE name = 'Mahabalipuram Handicrafts' LIMIT 1)),
+('Pallava Dynasty Replica', 'Miniature replica of the Shore Temple carved in soapstone. Perfect souvenir.', 850.00, 'Handicraft', 20, 'https://images.unsplash.com/photo-1567591370504-ce57d91f9905?w=400', 'Mahabalipuram', (SELECT id FROM shops WHERE name = 'Mahabalipuram Handicrafts' LIMIT 1)),
+('Handcrafted Shell Necklace', 'Beautiful necklace made from naturally collected seashells and beads.', 450.00, 'Jewelry', 30, 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=400', 'Mahabalipuram', (SELECT id FROM shops WHERE name = 'Sea Shore Crafts' LIMIT 1)),
+('Seashell Wind Chime', 'Handmade wind chime crafted from local seashells. Produces soothing coastal sounds.', 350.00, 'Decor', 25, 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=400', 'Mahabalipuram', (SELECT id FROM shops WHERE name = 'Sea Shore Crafts' LIMIT 1)),
+('Coral Art Frame', 'Photo frame decorated with coral and shell patterns. Handmade coastal art.', 550.00, 'Decor', 18, 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=400', 'Mahabalipuram', (SELECT id FROM shops WHERE name = 'Sea Shore Crafts' LIMIT 1)),
+('Bronze Nataraja Statue', 'Traditional Chola-style bronze Nataraja figurine. Lost-wax casting method.', 2200.00, 'Handicraft', 8, 'https://images.unsplash.com/photo-1567591370504-ce57d91f9905?w=400', 'Mahabalipuram', (SELECT id FROM shops WHERE name = 'Heritage Arts Emporium' LIMIT 1)),
+('Stone Relief Panel', 'Carved stone panel depicting scenes from Indian mythology. Wall mounting included.', 1800.00, 'Art', 5, 'https://images.unsplash.com/photo-1567591370504-ce57d91f9905?w=400', 'Mahabalipuram', (SELECT id FROM shops WHERE name = 'Heritage Arts Emporium' LIMIT 1)),
+('Auroville Handmade Paper Journal', 'Eco-friendly journal made from recycled paper by Auroville artisans.', 380.00, 'Stationery', 40, 'https://images.unsplash.com/photo-1544816155-12df9643f363?w=400', 'Pondicherry', (SELECT id FROM shops WHERE name = 'Pondy Bazaar Crafts' LIMIT 1)),
+('French Colonial Candle Set', 'Scented candle set inspired by Pondicherry French Quarter aromas.', 650.00, 'Decor', 22, 'https://images.unsplash.com/photo-1544816155-12df9643f363?w=400', 'Pondicherry', (SELECT id FROM shops WHERE name = 'Pondy Bazaar Crafts' LIMIT 1)),
+('Pondy Pottery Vase', 'Hand-thrown terracotta vase with traditional Tamil designs.', 480.00, 'Handicraft', 15, 'https://images.unsplash.com/photo-1544816155-12df9643f363?w=400', 'Pondicherry', (SELECT id FROM shops WHERE name = 'Pondy Bazaar Crafts' LIMIT 1)),
+('Kanchipuram Silk Saree', 'Pure silk saree with traditional Kanchipuram weave and gold zari border.', 4500.00, 'Textile', 10, 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=400', 'Madurai', (SELECT id FROM shops WHERE name = 'Meenakshi Silk Emporium' LIMIT 1)),
+('Madurai Jasmine Garland Kit', 'DIY jasmine garland making kit with fresh flowers and thread.', 250.00, 'Traditional', 50, 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=400', 'Madurai', (SELECT id FROM shops WHERE name = 'Meenakshi Silk Emporium' LIMIT 1)),
+('Thanjavur Painting - Krishna', 'Traditional Thanjavur painting of Lord Krishna with gold foil and precious stones.', 3500.00, 'Art', 6, 'https://images.unsplash.com/photo-1567591370504-ce57d91f9905?w=400', 'Thanjavur', (SELECT id FROM shops WHERE name = 'Thanjavur Art Gallery' LIMIT 1)),
+('Chola Bronze Lamp', 'Traditional bronze oil lamp inspired by Chola dynasty temple designs.', 1200.00, 'Handicraft', 12, 'https://images.unsplash.com/photo-1567591370504-ce57d91f9905?w=400', 'Thanjavur', (SELECT id FROM shops WHERE name = 'Thanjavur Art Gallery' LIMIT 1)),
+('Thanjavur Thattu (Plate)', 'Decorative brass plate with intricate Thanjavur art work.', 1800.00, 'Handicraft', 8, 'https://images.unsplash.com/photo-1567591370504-ce57d91f9905?w=400', 'Thanjavur', (SELECT id FROM shops WHERE name = 'Thanjavur Art Gallery' LIMIT 1)),
+('Sacred Rudraksha Mala', 'Authentic rudraksha prayer beads from Rameswaram. Blessed at the temple.', 900.00, 'Religious', 20, 'https://images.unsplash.com/photo-1567591370504-ce57d91f9905?w=400', 'Rameswaram', (SELECT id FROM shops WHERE name = 'Temple Town Souvenirs' LIMIT 1)),
+('Brass Temple Bell', 'Handcrafted brass bell for home temple. Resonant sound for prayers.', 650.00, 'Religious', 30, 'https://images.unsplash.com/photo-1567591370504-ce57d91f9905?w=400', 'Rameswaram', (SELECT id FROM shops WHERE name = 'Temple Town Souvenirs' LIMIT 1)),
+('Shell Mosaic Art Piece', 'Decorative wall art created from thousands of tiny seashells. Handmade masterpiece.', 1500.00, 'Art', 5, 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=400', 'Rameswaram', (SELECT id FROM shops WHERE name = 'Coastal Shell Art' LIMIT 1)),
+('Pearl Shell Earrings', 'Elegant earrings crafted from mother-of-pearl shells found on Rameswaram shores.', 380.00, 'Jewelry', 35, 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=400', 'Rameswaram', (SELECT id FROM shops WHERE name = 'Coastal Shell Art' LIMIT 1));
