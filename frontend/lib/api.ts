@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import { FALLBACK_DESTINATIONS, FALLBACK_SPOTS, FALLBACK_PRODUCTS } from './fallbackData';
+import { FALLBACK_DESTINATIONS, FALLBACK_SPOTS, FALLBACK_PRODUCTS, getFilteredFallbackProducts } from './fallbackData';
 
 function getApiUrl(): string {
   if (process.env.NEXT_PUBLIC_API_URL && !process.env.NEXT_PUBLIC_API_URL.includes('localhost')) {
@@ -226,9 +226,9 @@ export const api = {
     try {
       const items = await request<any[]>(`/api/products${params ? `?${params}` : ''}`);
       if (Array.isArray(items) && items.length > 0) return items;
-      return FALLBACK_PRODUCTS;
+      return getFilteredFallbackProducts(params);
     } catch {
-      return FALLBACK_PRODUCTS;
+      return getFilteredFallbackProducts(params);
     }
   },
   getRecentProducts: async (limit?: number) => {

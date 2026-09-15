@@ -277,6 +277,17 @@ _PRODUCTS_CACHE = {"data": None, "timestamp": 0}
 PRODUCTS_CACHE_TTL = 30  # seconds
 
 
+def _parse_limit(val, default: int = 50) -> int:
+    try:
+        return int(val)
+    except (TypeError, ValueError):
+        d = getattr(val, "default", default)
+        try:
+            return int(d)
+        except Exception:
+            return default
+
+
 @router.get("/products", response_model=list[ProductResponse])
 async def list_products(
     category: Optional[str] = None,
@@ -289,15 +300,17 @@ async def list_products(
     limit: int = Query(50, le=100),
     offset: int = 0,
 ):
-    """List products with fast in-memory caching."""
+    """List products with fast in-memory caching and complete fallback resilience."""
+    int_limit = _parse_limit(limit, 50)
     now = time.time()
     # If standard catalog without active search, serve cached result instantly
     if not search and (not category or category == 'All') and not min_price and not max_price and not location and offset == 0:
         if _PRODUCTS_CACHE["data"] and (now - _PRODUCTS_CACHE["timestamp"] < PRODUCTS_CACHE_TTL):
-            return _PRODUCTS_CACHE["data"][:limit]
-    supabase = get_supabase()
+            return _PRODUCTS_CACHE["data"][:int_limit]
+
     raw_items = []
     try:
+        supabase = get_supabase()
         query = supabase.table("products").select("*, sellers(shop_name, udyam_verified, business_name)")
         if category and category.lower() != "all":
             query = query.eq("category", category)
@@ -314,7 +327,7 @@ async def list_products(
         if search:
             query = query.or_(f"name.ilike.%{search}%,description.ilike.%{search}%")
 
-        query = query.order("created_at", desc=True).range(offset, offset + limit - 1)
+        query = query.order("created_at", desc=True).range(offset, offset + int_limit - 1)
         resp = query.execute()
         raw_items = resp.data or []
     except Exception:
@@ -337,20 +350,22 @@ async def list_products(
         _PRODUCTS_CACHE["data"] = results
         _PRODUCTS_CACHE["timestamp"] = now
 
-    return results[:limit]
+    return results[:int_limit]
 
 
 @router.get("/products/recent", response_model=list[ProductResponse])
 async def recent_products(limit: int = Query(10, le=50)):
     """Get recently added products."""
-    supabase = get_supabase()
+    int_limit = _parse_limit(limit, 10)
     raw_items = []
+
     try:
+        supabase = get_supabase()
         resp = (
             supabase.table("products")
             .select("*, sellers(shop_name, udyam_verified, business_name)")
             .order("created_at", desc=True)
-            .limit(limit)
+            .limit(int_limit)
             .execute()
         )
         raw_items = resp.data or []
@@ -367,17 +382,17 @@ async def recent_products(limit: int = Query(10, le=50)):
         results.append(item)
 
     if not results:
-        results = FALLBACK_PRODUCTS[:limit]
+        results = FALLBACK_PRODUCTS[:int_limit]
 
-    return results
+    return results[:int_limit]
 
 
 @router.get("/products/{product_id}", response_model=ProductResponse)
 async def get_product(product_id: str):
     """Get a product by ID."""
-    supabase = get_supabase()
     item = None
     try:
+        supabase = get_supabase()
         resp = (
             supabase.table("products")
             .select("*, sellers(shop_name, udyam_verified, business_name)")

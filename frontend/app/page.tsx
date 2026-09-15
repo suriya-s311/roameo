@@ -4,23 +4,24 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '@/lib/api';
-import { MapPin, Search, ArrowRight, Star, ShieldCheck, Compass, Sparkles, TrendingUp } from 'lucide-react';
+import { FALLBACK_DESTINATIONS, FALLBACK_PRODUCTS } from '@/lib/fallbackData';
+import { MapPin, Search, ArrowRight, Star, ShieldCheck, Compass, Sparkles, TrendingUp, Package } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function HomePage() {
   const router = useRouter();
   const [destination, setDestination] = useState('');
-  const [destinations, setDestinations] = useState<any[]>([]);
-  const [recentProducts, setRecentProducts] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [destinations, setDestinations] = useState<any[]>(FALLBACK_DESTINATIONS);
+  const [recentProducts, setRecentProducts] = useState<any[]>(FALLBACK_PRODUCTS.slice(0, 8));
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     Promise.all([
-      api.getDestinations().catch(() => []),
-      api.getRecentProducts(8).catch(() => []),
+      api.getDestinations().catch(() => FALLBACK_DESTINATIONS),
+      api.getRecentProducts(8).catch(() => FALLBACK_PRODUCTS.slice(0, 8)),
     ]).then(([dests, products]) => {
-      setDestinations(dests);
-      setRecentProducts(products);
+      if (Array.isArray(dests) && dests.length > 0) setDestinations(dests);
+      if (Array.isArray(products) && products.length > 0) setRecentProducts(products);
       setLoading(false);
     });
   }, []);

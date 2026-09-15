@@ -47,6 +47,10 @@ async def diagnostic():
         d = sb.table("destinations").select("id, name").limit(2).execute()
         res["destinations_test"] = "ok"
         res["destinations_count"] = len(d.data or [])
+
+        p = sb.table("products").select("id, name").limit(2).execute()
+        res["products_test"] = "ok"
+        res["products_count"] = len(p.data or [])
     except Exception as e:
         import traceback
         res["destinations_test"] = f"error: {type(e).__name__}: {str(e)}"

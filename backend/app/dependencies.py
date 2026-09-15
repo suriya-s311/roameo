@@ -7,9 +7,27 @@ from jose import jwt, JWTError
 from app.config import settings
 
 
+_SUPABASE_CLIENT = None
+
+
 def get_supabase() -> Client:
-    """Get Supabase admin client (service role)."""
-    return create_client(settings.SUPABASE_URL, settings.SUPABASE_SERVICE_ROLE_KEY)
+    """Get Supabase admin client (service role) with clean URL and caching."""
+    global _SUPABASE_CLIENT
+    if _SUPABASE_CLIENT is not None:
+        return _SUPABASE_CLIENT
+
+    import re
+    url = (settings.SUPABASE_URL or "").strip()
+    match = re.search(r"https://[a-zA-Z0-9-]+\.supabase\.co", url)
+    if match:
+        clean_url = match.group(0)
+    else:
+        clean_url = url.split("]")[0].strip()
+
+    key = (settings.SUPABASE_SERVICE_ROLE_KEY or "").strip()
+    _SUPABASE_CLIENT = create_client(clean_url, key)
+    return _SUPABASE_CLIENT
+
 
 
 async def get_current_user(authorization: str = Header(..., alias="Authorization")):

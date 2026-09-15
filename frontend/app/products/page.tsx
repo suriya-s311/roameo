@@ -208,15 +208,14 @@ const CLIENT_FALLBACK_PRODUCTS = [
 
 export default function ProductsPage() {
   const { user } = useAuth();
-  const [products, setProducts] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [products, setProducts] = useState<any[]>(CLIENT_FALLBACK_PRODUCTS);
+  const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('All');
   const [selectedProduct, setSelectedProduct] = useState<any | null>(null);
   const [addingToCart, setAddingToCart] = useState(false);
 
   const loadProducts = async () => {
-    setLoading(true);
     try {
       const params: string[] = [];
       if (search) params.push(`search=${encodeURIComponent(search)}`);
@@ -231,7 +230,6 @@ export default function ProductsPage() {
     } catch {
       filterClientFallback(search, category);
     }
-    setLoading(false);
   };
 
   const filterClientFallback = (q: string, cat: string) => {
@@ -338,7 +336,7 @@ export default function ProductsPage() {
         </div>
 
         {/* Products Grid */}
-        {loading ? (
+        {loading && products.length === 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
               <div key={i} className="skeleton h-84 rounded-2xl" />
@@ -368,25 +366,40 @@ export default function ProductsPage() {
                 key={p.id || i}
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.04 }}
+                transition={{ delay: i * 0.03 }}
                 className="glass-card overflow-hidden group flex flex-col justify-between hover:border-brand-500/40 transition-all duration-300 hover:shadow-xl hover:shadow-brand-500/10"
               >
-                {/* Image Container */}
-                <div className="h-48 relative overflow-hidden bg-slate-800">
+                {/* Image Container with "with or without photo" resilience */}
+                <div className="h-48 relative overflow-hidden bg-gradient-to-br from-slate-800 via-slate-900 to-brand-950 flex items-center justify-center">
                   <img
                     src={p.image_url || DEFAULT_PRODUCT_IMAGE}
                     alt={p.name}
                     onError={(e) => {
-                      if ((e.target as HTMLImageElement).src !== DEFAULT_PRODUCT_IMAGE) {
-                        (e.target as HTMLImageElement).src = DEFAULT_PRODUCT_IMAGE;
+                      const img = e.target as HTMLImageElement;
+                      if (img.src !== DEFAULT_PRODUCT_IMAGE) {
+                        img.src = DEFAULT_PRODUCT_IMAGE;
+                      } else {
+                        img.style.display = 'none';
+                        const parent = img.parentElement;
+                        const fallbackBox = parent?.querySelector('.card-photo-fallback');
+                        if (fallbackBox) (fallbackBox as HTMLElement).style.display = 'flex';
                       }
                     }}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60 group-hover:opacity-30 transition-opacity" />
+                  {/* Photo fallback element if photo is missing or fails */}
+                  <div className="card-photo-fallback hidden flex-col items-center justify-center p-4 text-center absolute inset-0 bg-gradient-to-br from-slate-800 to-slate-900">
+                    <div className="w-12 h-12 rounded-xl bg-brand-500/20 border border-brand-400/30 flex items-center justify-center mb-1.5">
+                      <Package className="w-6 h-6 text-brand-300" />
+                    </div>
+                    <span className="text-xs font-semibold text-slate-200 line-clamp-1">{p.name}</span>
+                    <span className="text-[11px] text-brand-400">{p.category || 'Authentic Item'}</span>
+                  </div>
+
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60 group-hover:opacity-30 transition-opacity pointer-events-none" />
 
                   {/* Destination Tag Badge */}
-                  <div className="absolute bottom-2.5 left-2.5">
+                  <div className="absolute bottom-2.5 left-2.5 z-10">
                     <span className="flex items-center gap-1 text-[11px] font-medium text-amber-300 bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-full border border-amber-400/30">
                       <MapPin className="w-3 h-3 text-amber-400" />
                       {p.location || 'Tamil Nadu'}
@@ -394,7 +407,7 @@ export default function ProductsPage() {
                   </div>
 
                   {/* Verified & Category Badge */}
-                  <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5">
+                  <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5 z-10">
                     {p.verified && (
                       <span className="badge-verified !text-[10px] !py-0.5 !px-2 backdrop-blur-md">
                         <ShieldCheck className="w-3 h-3" /> Verified
@@ -405,7 +418,7 @@ export default function ProductsPage() {
                   {/* Quick View Floating Button */}
                   <button
                     onClick={() => setSelectedProduct(p)}
-                    className="absolute top-2.5 left-2.5 opacity-0 group-hover:opacity-100 transition-opacity bg-black/70 hover:bg-black/90 text-white p-1.5 rounded-full backdrop-blur-md border border-white/20"
+                    className="absolute top-2.5 left-2.5 opacity-0 group-hover:opacity-100 transition-opacity bg-black/70 hover:bg-black/90 text-white p-1.5 rounded-full backdrop-blur-md border border-white/20 z-10 cursor-pointer"
                     title="Quick View"
                   >
                     <Eye className="w-4 h-4" />
@@ -490,18 +503,31 @@ export default function ProductsPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-2">
                 {/* Image */}
-                <div className="relative h-64 md:h-full rounded-2xl overflow-hidden bg-slate-800">
+                <div className="relative h-64 md:h-full rounded-2xl overflow-hidden bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center">
                   <img
                     src={selectedProduct.image_url || DEFAULT_PRODUCT_IMAGE}
                     alt={selectedProduct.name}
                     onError={(e) => {
-                      if ((e.target as HTMLImageElement).src !== DEFAULT_PRODUCT_IMAGE) {
-                        (e.target as HTMLImageElement).src = DEFAULT_PRODUCT_IMAGE;
+                      const img = e.target as HTMLImageElement;
+                      if (img.src !== DEFAULT_PRODUCT_IMAGE) {
+                        img.src = DEFAULT_PRODUCT_IMAGE;
+                      } else {
+                        img.style.display = 'none';
+                        const parent = img.parentElement;
+                        const fallbackBox = parent?.querySelector('.modal-photo-fallback');
+                        if (fallbackBox) (fallbackBox as HTMLElement).style.display = 'flex';
                       }
                     }}
                     className="w-full h-full object-cover"
                   />
-                  <div className="absolute bottom-3 left-3">
+                  <div className="modal-photo-fallback hidden flex-col items-center justify-center p-6 text-center absolute inset-0 bg-gradient-to-br from-slate-800 to-slate-900">
+                    <div className="w-16 h-16 rounded-2xl bg-brand-500/20 border border-brand-400/30 flex items-center justify-center mb-3">
+                      <Package className="w-8 h-8 text-brand-300" />
+                    </div>
+                    <span className="text-sm font-semibold text-slate-200 line-clamp-1">{selectedProduct.name}</span>
+                    <span className="text-xs text-brand-400 mt-1">{selectedProduct.category || 'Authentic Item'}</span>
+                  </div>
+                  <div className="absolute bottom-3 left-3 z-10">
                     <span className="flex items-center gap-1 text-xs font-medium text-amber-300 bg-black/70 backdrop-blur-md px-3 py-1 rounded-full border border-amber-400/30">
                       <MapPin className="w-3.5 h-3.5 text-amber-400" />
                       {selectedProduct.location || 'Tamil Nadu'}
