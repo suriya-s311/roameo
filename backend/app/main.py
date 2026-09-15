@@ -33,6 +33,27 @@ async def health_check():
     return {"status": "healthy", "service": "ROAMEO API", "version": "1.0.0"}
 
 
+@app.get("/api/diagnostic")
+async def diagnostic():
+    res = {
+        "supabase_url": settings.SUPABASE_URL,
+        "has_service_key": bool(settings.SUPABASE_SERVICE_ROLE_KEY),
+        "jwt_secret_len": len(settings.SUPABASE_JWT_SECRET),
+        "jwt_secret_has_git": "git add" in settings.SUPABASE_JWT_SECRET,
+    }
+    try:
+        from app.dependencies import get_supabase
+        sb = get_supabase()
+        d = sb.table("destinations").select("id, name").limit(2).execute()
+        res["destinations_test"] = "ok"
+        res["destinations_count"] = len(d.data or [])
+    except Exception as e:
+        import traceback
+        res["destinations_test"] = f"error: {type(e).__name__}: {str(e)}"
+        res["traceback"] = traceback.format_exc()
+    return res
+
+
 # Register routes
 app.include_router(profiles.router, prefix="/api", tags=["Profiles"])
 app.include_router(sellers.router, prefix="/api", tags=["Sellers"])
