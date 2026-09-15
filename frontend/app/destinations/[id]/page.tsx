@@ -12,6 +12,14 @@ import toast from 'react-hot-toast';
 
 const MapContainer = dynamic(() => import('@/components/MapView'), { ssr: false, loading: () => <div className="skeleton h-80 rounded-2xl" /> });
 
+const DESTINATION_FALLBACK_IMAGES: Record<string, string> = {
+  Mahabalipuram: 'https://images.unsplash.com/photo-1590050752117-238cb0fb12b1?w=1200',
+  Madurai: 'https://images.unsplash.com/photo-1609766857041-ed402ea8069a?w=1200',
+  Pondicherry: 'https://images.unsplash.com/photo-1582510003544-4d00b7f74220?w=1200',
+  Thanjavur: 'https://images.unsplash.com/photo-1548013146-72479768bada?w=1200',
+  Rameswaram: 'https://images.unsplash.com/photo-1544735716-392fe2489ffa?w=1200',
+};
+
 export default function DestinationDetailPage() {
   const { id } = useParams();
   const router = useRouter();
@@ -55,11 +63,23 @@ export default function DestinationDetailPage() {
     </div>
   );
 
+  const coverImg = (destination?.name && DESTINATION_FALLBACK_IMAGES[destination.name]) || destination.image_url || 'https://images.unsplash.com/photo-1590050752117-238cb0fb12b1?w=1200';
+
   return (
     <div className="min-h-screen">
       {/* Hero */}
-      <div className="relative h-72 md:h-96 overflow-hidden">
-        <img src={destination.image_url || 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200'} alt={destination.name} className="w-full h-full object-cover" />
+      <div className="relative h-72 md:h-96 overflow-hidden bg-slate-900">
+        <img
+          src={coverImg}
+          alt={destination.name}
+          onError={(e) => {
+            const fallback = DESTINATION_FALLBACK_IMAGES[destination.name] || 'https://images.unsplash.com/photo-1590050752117-238cb0fb12b1?w=1200';
+            if ((e.target as HTMLImageElement).src !== fallback) {
+              (e.target as HTMLImageElement).src = fallback;
+            }
+          }}
+          className="w-full h-full object-cover"
+        />
         <div className="absolute inset-0 bg-gradient-to-t from-[#0f172a] via-black/40 to-transparent" />
         <div className="absolute bottom-8 left-4 md:left-8">
           <p className="text-brand-300 text-sm mb-2">{destination.state}</p>

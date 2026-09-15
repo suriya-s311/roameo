@@ -25,6 +25,9 @@ async def get_current_user(authorization: str = Header(..., alias="Authorization
 
     token = authorization.replace("Bearer ", "")
 
+    user_id = None
+    email = ""
+
     try:
         # Verify using Supabase JWT secret
         payload = jwt.decode(
@@ -34,12 +37,25 @@ async def get_current_user(authorization: str = Header(..., alias="Authorization
             audience="authenticated",
         )
         user_id = payload.get("sub")
-        if not user_id:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid token: no user ID",
-            )
+        email = payload.get("email", "")
+    except Exception:
+        # Fallback to Supabase Auth API directly
+        try:
+            supabase = get_supabase()
+            user_resp = supabase.auth.get_user(token)
+            if user_resp and user_resp.user:
+                user_id = user_resp.user.id
+                email = user_resp.user.email or ""
+        except Exception:
+            pass
 
+    if not user_id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired token",
+        )
+
+    try:
         # Fetch role from profiles table
         supabase = get_supabase()
         profile_resp = (
@@ -51,12 +67,12 @@ async def get_current_user(authorization: str = Header(..., alias="Authorization
         )
         role = profile_resp.data.get("role", "traveler") if profile_resp.data else "traveler"
 
-        return {"user_id": user_id, "email": payload.get("email", ""), "role": role}
+        return {"user_id": user_id, "email": email, "role": role}
 
-    except JWTError:
+    except Exception as e:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired token",
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to fetch profile: {str(e)}",
         )
 
 

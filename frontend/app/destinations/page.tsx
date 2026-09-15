@@ -7,6 +7,21 @@ import { Search, MapPin, Star } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useSearchParams } from 'next/navigation';
 
+const DESTINATION_FALLBACK_IMAGES: Record<string, string> = {
+  Mahabalipuram: 'https://images.unsplash.com/photo-1590050752117-238cb0fb12b1?w=800',
+  Madurai: 'https://images.unsplash.com/photo-1609766857041-ed402ea8069a?w=800',
+  Pondicherry: 'https://images.unsplash.com/photo-1582510003544-4d00b7f74220?w=800',
+  Thanjavur: 'https://images.unsplash.com/photo-1548013146-72479768bada?w=800',
+  Rameswaram: 'https://images.unsplash.com/photo-1544735716-392fe2489ffa?w=800',
+};
+
+function getDestinationCover(dest: any): string {
+  if (dest?.name && DESTINATION_FALLBACK_IMAGES[dest.name]) {
+    return DESTINATION_FALLBACK_IMAGES[dest.name];
+  }
+  return dest?.image_url || 'https://images.unsplash.com/photo-1590050752117-238cb0fb12b1?w=800';
+}
+
 export default function DestinationsPage() {
   return (
     <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="w-12 h-12 border-4 border-brand-400 border-t-transparent rounded-full animate-spin" /></div>}>
@@ -68,8 +83,18 @@ function DestinationsContent() {
             {destinations.map((dest, i) => (
               <motion.div key={dest.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}>
                 <Link href={`/destinations/${dest.id}`} className="block glass-card overflow-hidden group cursor-pointer">
-                  <div className="h-52 relative overflow-hidden">
-                    <img src={dest.image_url || 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600'} alt={dest.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                  <div className="h-52 relative overflow-hidden bg-slate-800">
+                    <img
+                      src={getDestinationCover(dest)}
+                      alt={dest.name}
+                      onError={(e) => {
+                        const fallback = DESTINATION_FALLBACK_IMAGES[dest.name] || 'https://images.unsplash.com/photo-1590050752117-238cb0fb12b1?w=800';
+                        if ((e.target as HTMLImageElement).src !== fallback) {
+                          (e.target as HTMLImageElement).src = fallback;
+                        }
+                      }}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                    />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
                     <div className="absolute top-3 right-3 badge-verified"><Star className="w-3 h-3 fill-current" /> Featured</div>
                     <div className="absolute bottom-4 left-4">
